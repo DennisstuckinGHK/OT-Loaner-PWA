@@ -7,7 +7,7 @@
   "display": "standalone",
   "background_color": "#0b1220",
   "theme_color": "#0b1220",
-  "description": "Offline-capable OT loan equipment registration app.",
+  "description": "OT loaner registration with QR scanning.",
   "icons": [
     {
       "src": "icon-192.png",

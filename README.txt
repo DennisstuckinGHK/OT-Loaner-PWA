@@ -1,3 +1,4 @@
-OT Loaner PWA V2.0
+OT Loaner PWA V2.2
+Exact V2.0/V1.6.1 UI with QR scanner added.
 
-Upload all files together to an HTTPS web host. Open index.html in Edge/Chrome, then use Install App or Add to Home Screen. Service workers do not run from file:// links. Loan number can be passed as ?loan=OT_Loaner01 or #OT_Loaner01.
+Replace all files in the GitHub Pages repository root. Commit changes, open the HTTPS site, refresh once, then allow camera permission after pressing Scan QR Code. QR values may be OT_Loaner01 to OT_Loaner100 or an app URL containing ?loan=OT_Loaner01.

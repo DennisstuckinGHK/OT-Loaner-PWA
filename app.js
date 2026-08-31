@@ -1,0 +1,19 @@
+"use strict";
+const STORE="ot-loaner-pwa-v2"; const $=id=>document.getElementById(id); let selectedStatus="Pending to Check";
+function normalizeLoan(v){const m=String(v||"").trim().match(/^OT_Loaner(\d{1,3})$/i);if(!m)return "OT_Loaner01";const n=Number(m[1]);return n>=1&&n<=100?`OT_Loaner${String(n).padStart(2,"0")}`:"OT_Loaner01"}
+const params=new URLSearchParams(location.search); const hash=location.hash.replace(/^#/,""); const loan=normalizeLoan(params.get("loan")||hash||"OT_Loaner01");
+$("loanDisplay").textContent="# "+loan; $("testDate").value=new Date().toISOString().slice(0,10);
+function rows(){try{return JSON.parse(localStorage.getItem(STORE)||"[]")}catch{return []}}
+function saveRows(v){localStorage.setItem(STORE,JSON.stringify(v))}
+function setStatus(s){selectedStatus=s;document.querySelectorAll(".status-btn").forEach(b=>b.classList.toggle("active",b.dataset.status===s))}
+function updateStats(){const d=rows();$("pendingCount").textContent=d.filter(x=>x.status==="Pending to Check").length;$("checkedCount").textContent=d.filter(x=>x.status==="Checked").length;$("returnedCount").textContent=d.filter(x=>x.status==="Returned").length}
+function load(){const x=rows().find(v=>v.loanNumber===loan);if(!x)return;$("supplier").value=x.supplier||"";$("model").value=x.model||"";$("serial").value=x.serialNumber||"";$("testDate").value=x.testDate||$("testDate").value;$("frequency").value=x.testFrequency||"";setStatus(x.status||selectedStatus)}
+document.querySelectorAll(".status-btn").forEach(b=>b.addEventListener("click",()=>setStatus(b.dataset.status)));
+$("form").addEventListener("submit",e=>{e.preventDefault();let valid=true;["supplier","model","serial","testDate","frequency"].forEach(id=>{const el=$(id),bad=!el.value.trim();el.classList.toggle("error",bad);if(bad)valid=false});if(!valid)return;const rec={loanNumber:loan,supplier:$("supplier").value.trim(),model:$("model").value.trim(),serialNumber:$("serial").value.trim(),testDate:$("testDate").value,testFrequency:$("frequency").value.trim(),status:selectedStatus,updatedAt:new Date().toISOString()};const d=rows(),i=d.findIndex(x=>x.loanNumber===loan);i>=0?d[i]=rec:d.push(rec);saveRows(d);$("toast").style.display="block";updateStats()});
+function dl(name,text,type){const u=URL.createObjectURL(new Blob([text],{type})),a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),500)}
+$("exportBtn").onclick=()=>{const esc=v=>'"'+String(v??"").replaceAll('"','""')+'"',head=["Loan Number","Supplier","Model","Serial Number","Test Date","Test Frequency","Status","Updated At"],body=rows().map(x=>[x.loanNumber,x.supplier,x.model,x.serialNumber,x.testDate,x.testFrequency,x.status,x.updatedAt]);dl("OT_Loaner_Register.csv","\ufeff"+[head,...body].map(r=>r.map(esc).join(",")).join("\r\n"),"text/csv;charset=utf-8")};
+$("backupBtn").onclick=()=>dl("OT_Loaner_Backup.json",JSON.stringify(rows(),null,2),"application/json");
+function net(){const online=navigator.onLine;$("networkState").textContent=online?"Online":"Offline";$("networkState").classList.toggle("offline",!online)}addEventListener("online",net);addEventListener("offline",net);net();
+let installPrompt=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;$("installBtn").style.display="block"});$("installBtn").onclick=async()=>{if(!installPrompt)return;installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$("installBtn").style.display="none"};
+if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js"));
+load();updateStats();

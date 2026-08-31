@@ -13,7 +13,36 @@ function clearForm(){$("supplier").value="";$("model").value="";$("serial").valu
 function loadLoan(value){const id=normalizeLoan(value);if(!id)return false;currentLoan=id;$("loanDisplay").textContent="# "+id;clearForm();const x=rows().find(v=>v.loanNumber===id);if(x){$("supplier").value=x.supplier||"";$("model").value=x.model||"";$("serial").value=x.serialNumber||"";$("testDate").value=x.testDate||$("testDate").value;$("frequency").value=x.testFrequency||"";setStatus(x.status||"Pending to Check")}history.replaceState(null,"",location.pathname+"?loan="+encodeURIComponent(id));return true}
 const params=new URLSearchParams(location.search),hash=location.hash.replace(/^#/,"");loadLoan(extractLoan(params.get("loan")||hash)||"OT_Loaner01");
 document.querySelectorAll(".status-btn").forEach(b=>b.addEventListener("click",()=>setStatus(b.dataset.status)));
-$("form").addEventListener("submit",e=>{e.preventDefault();let valid=true;["supplier","model","serial","testDate","frequency"].forEach(id=>{const el=$(id),bad=!el.value.trim();el.classList.toggle("error",bad);if(bad)valid=false});if(!valid)return;const rec={loanNumber:currentLoan,supplier:$("supplier").value.trim(),model:$("model").value.trim(),serialNumber:$("serial").value.trim(),testDate:$("testDate").value,testFrequency:$("frequency").value.trim(),status:selectedStatus,updatedAt:new Date().toISOString()};const d=rows(),i=d.findIndex(x=>x.loanNumber===currentLoan);i>=0?d[i]=rec:d.push(rec);saveRows(d);$("toast").textContent="Record saved for "+currentLoan+".";$("toast").style.display="block";updateStats()});
+$("form").addEventListener("submit",e=>{e.preventDefault();let valid=true;["supplier","model","serial","testDate","frequency"].forEach(id=>{const el=$(id),bad=!el.value.trim();el.classList.toggle("error",bad);if(bad)valid=false});if(!valid)return;const rec={loanNumber:currentLoan,supplier:$("supplier").value.trim(),model:$("model").value.trim(),serialNumber:$("serial").value.trim(),testDate:$("testDate").value,testFrequency:$("frequency").value.trim(),status:selectedStatus,updatedAt:new Date().toISOString()};const d=rows(),i=d.findIndex(x=>x.loanNumber===currentLoan);i>=0?d[i]=rec:d.push(rec);saveRows(d);
+ fetch(FLOW_URL,{
+    method:"POST",
+    headers:{
+        "Content-Type":"application/json"
+    },
+    body:JSON.stringify(rec)
+})
+.then(res=>{
+
+    if(!res.ok){
+        throw new Error(
+            "Flow failed"
+        );
+    }
+
+    console.log(
+        "Power Automate updated"
+    );
+
+})
+.catch(err=>{
+
+    console.error(
+        "Flow error",
+        err
+    );
+
+});                                       
+$("toast").textContent="Record saved for "+currentLoan+".";$("toast").style.display="block";updateStats()});
 function showScanError(text){$("scannerError").textContent=text;$("scannerError").style.display="block"}
 async function stopScanner(){if(scanner&&scannerRunning){try{await scanner.stop()}catch{}scannerRunning=false}if(scanner){try{scanner.clear()}catch{}scanner=null}}
 async function closeScanner(){await stopScanner();$("scannerModal").classList.remove("open")}

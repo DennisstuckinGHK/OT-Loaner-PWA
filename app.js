@@ -1,5 +1,8 @@
 "use strict";
-const STORE="ot-loaner-pwa-v2";const $=id=>document.getElementById(id);let selectedStatus="Pending to Check",currentLoan="OT_Loaner01",scanner=null,scannerRunning=false;
+const STORE="ot-loaner-pwa-v2";
+const FLOW_URL = 
+"https://defaultf0b669c421984f6890031f463c4b42.c0.environment.api.powerplatform.com/powerautomate/automations/direct/cu/06/workflows/f4874055b69b45e8be5ae6b4add7d44f/triggers/manual/paths/invoke?api-version=1";
+const $=id=>document.getElementById(id);let selectedStatus="Pending to Check",currentLoan="OT_Loaner01",scanner=null,scannerRunning=false;
 function normalizeLoan(v){const m=String(v||"").trim().match(/^OT_Loaner(\d{1,3})$/i);if(!m)return null;const n=Number(m[1]);return n>=1&&n<=100?`OT_Loaner${String(n).padStart(2,"0")}`:null}
 function extractLoan(v){const direct=normalizeLoan(v);if(direct)return direct;try{const u=new URL(String(v));return normalizeLoan(u.searchParams.get("loan")||u.hash.replace(/^#/,""))}catch{return null}}
 function rows(){try{return JSON.parse(localStorage.getItem(STORE)||"[]")}catch{return []}}
